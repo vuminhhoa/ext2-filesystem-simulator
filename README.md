@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Archived.** Coursework from 2023; kept for reference.
+
 # EXT2 Linux File System
 EXT2 file system emulator. It works like Linux does.
 
