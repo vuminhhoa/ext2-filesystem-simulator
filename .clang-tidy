@@ -1,0 +1,23 @@
+Checks: >
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  misc-*,
+  performance-*,
+  portability-*,
+  readability-misleading-indentation,
+  readability-non-const-parameter,
+  readability-redundant-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-assignment-in-if-condition,
+  -misc-include-cleaner,
+  -cert-err33-c,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -bugprone-implicit-widening-of-multiplication-result
+# Disabled on purpose:
+# - insecureAPI.DeprecatedOrUnsafeBufferHandling asks for the Annex K *_s functions, which glibc and musl
+#   do not provide.
+# - implicit-widening flags products of the block geometry constants, which are bounded by the block size.
+# - cert-err33-c flags every unchecked printf.
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(src|tests)/.*'
