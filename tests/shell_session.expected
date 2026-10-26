@@ -1,0 +1,74 @@
+EXT2 File system shell
+ext2 : [/]# file system is not mounted
+ext2 : [/]# formatting as a EXT2
+max inode count                : 131072
+total block count              : 262145
+byte size of inode structure   : 128
+block byte size                : 1024
+total sectors count            : 524290
+sector byte size               : 512
+
+disk has been formatted successfully
+ext2 : [/]# number of groups         : 32
+blocks per group         : 8192
+bytes per block          : 1024
+free block count         : 245599
+free inode count         : 131062
+first non reserved inode : 11
+inode structure size     : 128
+first data block number  : 517
+
+EXT2 file system has been mounted successfully
+ext2 : [/]# ext2 : [/]# ext2 : [/]# ext2 : [/]# [File names] [D] [File sizes]
+DOCS          1          1024
+A.TXT         0             0
+B.TXT         0             0
+BIG.TXT       0          3000
+
+ext2 : [/]# Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you see? Can you se
+ext2 : [/]# ext2 : [/DOCS]# ext2 : [/DOCS]# [File names] [D] [File sizes]
+NOTES.MD      0             0
+
+ext2 : [/DOCS]# ext2 : [/]# cannot remove directory
+ext2 : [/]# ext2 : [/]# ext2 : [/DOCS]# ext2 : [/DOCS]# ext2 : [/]# ext2 : [/]# write failed (files hold at most 12288 bytes)
+ext2 : [/]# create failed: waytoolongname.txt
+ext2 : [/]# [File names] [D] [File sizes]
+HUGE.BIN      0             0
+B.TXT         0             0
+BIG.TXT       0          3000
+
+ext2 : [/]#  * cd, mount, umount, touch, fill, ls, format, mkdir, rm, rmdir, exit, cat
+ext2 : [/]# directory not found
+ext2 : [/]# big.txt is not a directory
+ext2 : [/]# usage : cd [directory]
+ext2 : [/]# ext2 : [/]# ext2 : [/]# usage : cat [file name]
+ext2 : [/]# missing lookup failed
+ext2 : [/]# usage : mkdir [name]
+ext2 : [/]# ext2 : [/]# cannot create directory
+ext2 : [/]# docs is a directory
+ext2 : [/]# usage : rmdir [name]
+ext2 : [/]# ext2 : [/]# usage : touch [files...]
+ext2 : [/]# usage : fill [file] [size]
+ext2 : [/]# usage : fill [file] [size]
+ext2 : [/]# invalid size
+ext2 : [/]# usage : rm [files...]
+ext2 : [/]# cannot remove file
+ext2 : [/]# file system is already mounted
+ext2 : [/]# file system is already mounted
+ext2 : [/]# ext2 : [/]# file system is not mounted
+ext2 : [/]# number of groups         : 32
+blocks per group         : 8192
+bytes per block          : 1024
+free block count         : 245596
+free inode count         : 131059
+first non reserved inode : 11
+inode structure size     : 128
+first data block number  : 517
+
+EXT2 file system has been mounted successfully
+ext2 : [/]# [File names] [D] [File sizes]
+HUGE.BIN      0             0
+B.TXT         0             0
+BIG.TXT       0          3000
+
+ext2 : [/]# 

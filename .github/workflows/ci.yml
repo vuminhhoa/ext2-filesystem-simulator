@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Actions are pinned to full commit SHAs; Dependabot keeps them current (.github/dependabot.yml).
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, ${{ matrix.cc }}, ${{ matrix.preset }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, cc: gcc-14, preset: debug }
+          - { os: ubuntu-24.04, cc: clang-18, preset: debug }
+          - { os: ubuntu-24.04, cc: gcc-14, preset: release }
+          - { os: macos-15, cc: clang, preset: debug }
+    env:
+      CC: ${{ matrix.cc }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then sudo apt-get update -qq && sudo apt-get install -y -qq ninja-build "$CC"
+          else brew install ninja; fi
+      - run: cmake --preset ${{ matrix.preset }}
+      - run: cmake --build --preset ${{ matrix.preset }}
+      - run: ctest --preset ${{ matrix.preset }}
+
+  analyze:
+    name: static analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Clang picks the newest GCC installation and warns when its libstdc++ headers are missing.
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ninja-build gcc-14 clang-18 libstdc++-14-dev
+      - run: pipx install clang-tidy==23.1.3
+      - name: GCC -fanalyzer
+        run: |
+          CC=gcc-14 cmake -S . -B build/analyzer -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS=-fanalyzer
+          cmake --build build/analyzer
+      - name: clang-tidy
+        run: |
+          CC=clang-18 cmake --preset debug
+          clang-tidy -p build/debug src/*/*.c tests/*.c
+
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: pipx install clang-format==23.1.3
+      - run: clang-format --dry-run --Werror src/*/*.[ch] tests/*.[ch]
+
+  coverage:
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang-18
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ninja-build clang-18 llvm-18
+      - run: cmake --preset coverage
+      - run: cmake --build --preset coverage
+      - run: ctest --preset coverage
+      - name: Report
+        working-directory: build/coverage
+        run: |
+          llvm-profdata-18 merge -sparse profiles/*.profraw -o all.profdata
+          objects="./ext2-shell -object ./test_ext2 -object ./test_faults -object ./fuzz_ext2"
+          llvm-cov-18 report $objects -instr-profile=all.profdata -ignore-filename-regex='tests/' | tee report.txt
+          llvm-cov-18 export $objects -instr-profile=all.profdata -ignore-filename-regex='tests/' -format=lcov > coverage.lcov
+          { echo '```'; cat report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: build/coverage/coverage.lcov
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang-18
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # libFuzzer's runtime links against libstdc++.
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ninja-build clang-18 libclang-rt-18-dev libstdc++-14-dev
+      - run: cmake --preset fuzz
+      - run: cmake --build --preset fuzz
+      - name: Fuzz for two minutes
+        run: |
+          mkdir -p corpus crashes && cp tests/corpus/* corpus/
+          ./build/fuzz/fuzz_ext2 corpus -max_total_time=120 -artifact_prefix=crashes/ -print_final_stats=1
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-crashes
+          path: crashes/

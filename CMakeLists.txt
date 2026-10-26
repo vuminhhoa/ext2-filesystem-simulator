@@ -92,3 +92,35 @@ target_link_libraries(ext2 PRIVATE ext2sim_options)
 
 add_executable(ext2-shell src/shell/shell.c src/shell/ext2_shell.c src/shell/entrylist.c)
 target_link_libraries(ext2-shell PRIVATE ext2 ext2sim_options)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_library(ext2_fsck STATIC tests/fsck.c)
+  target_link_libraries(ext2_fsck PUBLIC ext2 PRIVATE ext2sim_options)
+
+  add_executable(test_ext2 tests/test_ext2.c)
+  target_link_libraries(test_ext2 PRIVATE ext2_fsck ext2sim_options)
+  add_test(NAME ext2 COMMAND test_ext2)
+
+  add_executable(test_faults tests/test_faults.c)
+  target_link_libraries(test_faults PRIVATE ext2 ext2sim_options)
+  add_test(NAME disk_faults COMMAND test_faults)
+
+  add_test(NAME shell_session
+    COMMAND ${CMAKE_COMMAND} -DSHELL=$<TARGET_FILE:ext2-shell>
+      -DINPUT=${CMAKE_CURRENT_SOURCE_DIR}/tests/shell_session.txt
+      -DEXPECTED=${CMAKE_CURRENT_SOURCE_DIR}/tests/shell_session.expected
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_shell_session.cmake)
+
+  add_executable(fuzz_ext2 tests/fuzz_ext2.c)
+  target_link_libraries(fuzz_ext2 PRIVATE ext2_fsck ext2sim_options)
+  if(EXT2SIM_LIBFUZZER)
+    target_compile_definitions(fuzz_ext2 PRIVATE EXT2SIM_LIBFUZZER)
+    target_link_options(fuzz_ext2 PRIVATE -fsanitize=fuzzer)
+  else()
+    # Without libFuzzer, replay the checked-in corpus and a batch of random inputs on every test run.
+    file(GLOB corpus CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/corpus/*)
+    add_test(NAME fuzz_corpus COMMAND fuzz_ext2 ${corpus})
+    add_test(NAME fuzz_random COMMAND fuzz_ext2 --iterations 200)
+  endif()
+endif()
