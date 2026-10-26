@@ -1,24 +1,25 @@
 # ext2 file system simulator
 
-An ext2-style file system in C that runs on a simulated 256 MiB disk held in memory, with a small shell (`format`, `mount`, `mkdir`, `touch`, `fill`, `cat`, `ls`, `cd`, `rm`, `rmdir`) to drive it. It is meant for learning how a block file system is laid out: superblock, block groups, bitmaps, inodes and directory entries.
+An ext2-style file system in C that runs on a simulated 256 MiB disk held in memory, with a small shell (`format`, `mount`, `mkdir`, `touch`, `fill`, `cat`, `ls`, `cd`, `rm`, `rmdir`) to drive it. It shows how a block file system is laid out: superblock, block groups, bitmaps, inodes and directory entries.
+
+This is a 2026 rewrite of an open-source ext2 emulator (see [Credits](#credits)):
+
+- **11 bugs found and fixed**, each with a regression test, from an allocator that filled the 256 MiB disk at 1.5 MiB to `rm` writing into another file's data.
+- **Tested beyond unit tests**: a fuzzer that checks every operation against an in-memory model, fault injection at each disk operation, and an `e2fsck`-style consistency check after every test.
+- **Modern C23 and CMake**: split into small modules, `-Werror` with `-Wconversion`, sanitizers, OpenSSF hardening flags, and CI with GCC and Clang, `-fanalyzer`, clang-tidy and coverage.
 
 It follows ext2's structure but is not compatible with it on disk: directory entries are fixed 32-byte records with 8.3 names, and files use direct blocks only.
 
-## Origin
+## Bugs found and fixed
 
-This code is not originally mine. It comes from two earlier works:
-
-1. **The shell, disk simulator and entry list** come from a FAT12/16 teaching framework by Kyoungmoon Sun (Dankook University Embedded System Lab., 2008), the example code for chapter 10 of the Korean book 「리눅스 커널 내부구조」. The FAT-style 8.3 directory entries also come from it. An archived copy is in [JSYoo5B/TIL](https://github.com/JSYoo5B/TIL/tree/master/Kernel/LKI/chap10/example/4_FAT).
-2. **The ext2 implementation** on top of that framework is by Yoonje Choi: [yoonje/ext2-linux-file-system](https://github.com/yoonje/ext2-linux-file-system) (2019).
-
-This repository's first commit (2023) is an unmodified copy of the second, which I had used for coursework. In 2026 I revisited it:
-
-- moved it to C23 and CMake with strict warnings, sanitizers and hardening flags;
-- rewrote the ext2 code into small modules;
-- fixed the bugs listed below;
-- added unit tests, fault injection, a fuzzer and CI.
-
-The on-disk layout, structures, API and shell still follow the original works.
+- Allocation scanned only the first 2,048 bits of group 0's bitmaps, so the 256 MiB disk was full after about 1,500 blocks. It now searches every group, and running out is reported instead of returning block 0.
+- `rm` and `rmdir` located the block bitmap through a macro without outer parentheses and flipped a bit inside a data block. The freed block was never released, while the superblock counted it as free.
+- Bits were cleared with XOR, so freeing a block twice marked it used again. Freeing now refuses a block that is already free.
+- A directory that filled its first block got a new block that was never linked to its inode, so entries past the 29th disappeared from `ls` and `lookup`.
+- `cat` crashed: the read path passed the file system where the disk was expected. Reads and writes now handle any offset and length, and `fill` stores the bytes it is given.
+- The superblock struct was 1,020 bytes but copied as 1,024, overwriting the next field. Struct sizes are now checked at compile time.
+- The root inode was built from uninitialized stack memory, format wrote a single inode bitmap at a group picked by an uninitialized variable, and names longer than 8.3 overflowed a buffer.
+- `exit` called `_exit`, losing buffered output, and end of input made the shell repeat the last command forever.
 
 ## Layout
 
@@ -120,19 +121,13 @@ BIG.TXT       0          3000
 
 Names are 8.3: up to 8 letters or digits, optionally a dot and up to 3 more, stored in upper case.
 
-## Fixed in 2026
+## Credits
 
-Bugs found in the 2019 ext2 code while rewriting it:
+- The shell, disk simulator, entry list and 8.3 directory entries come from Kyoungmoon Sun's FAT12/16 teaching framework (Dankook University, 2008), the example code for chapter 10 of 「리눅스 커널 내부구조」 ([archived copy](https://github.com/JSYoo5B/TIL/tree/master/Kernel/LKI/chap10/example/4_FAT)).
+- The ext2 implementation this rewrite started from is Yoonje Choi's [ext2-linux-file-system](https://github.com/yoonje/ext2-linux-file-system) (2019); the first commit here is a copy of it.
 
-- Allocation scanned only the first 2,048 bits of group 0's bitmaps, so the 256 MiB disk was full after about 1,500 blocks. It now searches every group, and running out is reported instead of returning block 0.
-- `rm` and `rmdir` located the block bitmap through a macro without outer parentheses and flipped a bit inside a data block. The freed block was never released, while the superblock counted it as free.
-- Bits were cleared with XOR, so freeing a block twice marked it used again. Freeing now refuses a block that is already free.
-- A directory that filled its first block got a new block that was never linked to its inode, so entries past the 29th disappeared from `ls` and `lookup`.
-- `cat` crashed: the read path passed the file system where the disk was expected. Reads and writes now handle any offset and length, and `fill` stores the bytes it is given.
-- The superblock struct was 1,020 bytes but copied as 1,024, overwriting the next field. Struct sizes are now checked at compile time.
-- The root inode was built from uninitialized stack memory, format wrote a single inode bitmap at a group picked by an uninitialized variable, and names longer than 8.3 overflowed a buffer.
-- `exit` called `_exit`, losing buffered output, and end of input made the shell repeat the last command forever.
+The on-disk layout, structures and API follow these works.
 
 ## License
 
-No license is granted. Neither of the original works above carries a license, so their authors keep all rights, and this repository, being derived from them, is shared for reference only.
+No license is granted: the original works carry none, so their authors keep all rights. Shared for reference.
