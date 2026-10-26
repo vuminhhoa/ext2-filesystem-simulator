@@ -1,0 +1,48 @@
+ls
+format
+mount
+mkdir docs
+touch a.txt b.txt
+fill big.txt 3000
+ls
+cat big.txt
+cd docs
+touch notes.md
+ls
+cd ..
+rmdir docs
+rm a.txt
+cd docs
+rm notes.md
+cd ..
+rmdir docs
+fill huge.bin 20000
+touch waytoolongname.txt
+ls
+frobnicate
+cd missing
+cd big.txt
+cd a b
+cd .
+cd ..
+cat
+cat missing
+mkdir
+mkdir docs
+mkdir docs
+cat docs
+rmdir
+rmdir docs
+touch
+fill
+fill bad name.txt 10
+fill neg.txt -5
+rm
+rm missing
+format
+mount
+umount
+ls
+mount
+ls
+exit
